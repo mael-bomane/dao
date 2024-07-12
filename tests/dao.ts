@@ -56,7 +56,8 @@ describe("dao", () => {
   let user2Ata: Account;
   let user3Ata: Account;
 
-  const amount = new BN(100 * 1 * 10 ** 6);
+  const decimals = 6;
+  const amount = new BN(200 * 1 * 10 ** decimals);
 
   before(async () => {
     await anchor
@@ -82,7 +83,6 @@ describe("dao", () => {
       )
       .then(confirmTx);
 
-    const decimals = 6;
 
     let token = await createMint(
       connection,
@@ -117,6 +117,7 @@ describe("dao", () => {
     console.log(
       `minted ${user1TokenAmount.value.uiAmountString} ${token.toBase58()} tokens for user1`
     );
+
     user2Ata = await getOrCreateAssociatedTokenAccount(
       connection,
       user1,
@@ -137,7 +138,28 @@ describe("dao", () => {
     console.log(
       `minted ${user2TokenAmount.value.uiAmountString} ${token.toBase58()} tokens for user2`
     );
-  })
+
+    user3Ata = await getOrCreateAssociatedTokenAccount(
+      connection,
+      user1,
+      token,
+      user3.publicKey
+    );
+
+    let user3MintTo = await mintTo(
+      connection,
+      user1,
+      token,
+      user3Ata.address,
+      user1.publicKey,
+      100 * 1 * 10 ** decimals
+    );
+    console.log(`https://explorer.solana.com/tx/${user2MintTo}?cluster=devnet`);
+    let user3TokenAmount = await connection.getTokenAccountBalance(user2Ata.address);
+    console.log(
+      `minted ${user3TokenAmount.value.uiAmountString} ${token.toBase58()} tokens for user3`
+    );
+  });
 
   it("initialize analytics", async () => {
     await program.methods.init()
@@ -172,7 +194,7 @@ describe("dao", () => {
   });
 
   it("user1 stake 100 tokens", async () => {
-    await program.methods.stake(amount)
+    await program.methods.stake(new BN(100))
       .accounts({
         user: user1.publicKey,
         auth,
@@ -183,6 +205,26 @@ describe("dao", () => {
         analytics,
       })
       .signers([user1])
+      .rpc()
+      .then(confirmTx)
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
+  });
+
+  it("user2 stake 50 tokens", async () => {
+    await program.methods.stake(new BN(50))
+      .accounts({
+        user: user2.publicKey,
+        auth,
+        dao,
+        signerAta: user2Ata.address,
+        vault,
+        mint: mint.publicKey,
+        analytics,
+      })
+      .signers([user2])
       .rpc()
       .then(confirmTx)
       .then(async () => {

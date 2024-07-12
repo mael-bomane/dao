@@ -4,7 +4,7 @@ use anchor_spl::token::{Mint, Token, TokenAccount};
 use crate::{
     constants::*,
     errors::ErrorCode,
-    state::{Analytics, Poll, DAO},
+    state::{Analytics, Poll, User, Deposit, DAO},
 };
 
 use anchor_lang::prelude::*;
@@ -13,9 +13,16 @@ use anchor_lang::prelude::*;
 #[instruction(title: String, content: String, amount: u64)]
 pub struct PollCreate<'info> {
     #[account(mut)]
-    pub creator: Signer<'info>,
+    pub signer: Signer<'info>,
     #[account(
         mut,
+        realloc = DAO::LEN + 
+        (
+         {dao.users.len() * User::LEN 
+             + (dao.total_deposits() * Deposit::LEN)
+             + (dao.total_polls() + 1 * Poll::LEN)}),
+        realloc::zero = false,
+        realloc::payer = signer,
         seeds = [b"dao", dao.creator.as_ref(), dao.mint.as_ref()],
         bump = dao.dao_bump 
     )]
@@ -23,7 +30,7 @@ pub struct PollCreate<'info> {
     #[account(
         mut,
         associated_token::mint = mint,
-        associated_token::authority = creator,
+        associated_token::authority = signer,
     )]
     pub signer_ata: Box<Account<'info, TokenAccount>>,
     #[account(
@@ -55,21 +62,36 @@ impl<'info> PollCreate<'info> {
         // pub polls: Vec<Poll>,
         // pub users: Vec<User>,
         // pub deposits: Vec<Deposit>,
-        if title.len() > MAX_DAO_NAME_LENGTH {
+        if title.len() > MAX_TITLE_LENGTH {
+            return err!(ErrorCode::PollTitleEmpty);
+        } else if title.len() == 0 {
+            return err!(ErrorCode::PollTitleTooLong);
+        }
+
+        if content.len() > MAX_DAO_NAME_LENGTH {
             return err!(ErrorCode::DAONameTooLong);
         } else if title.len() == 0 {
             return err!(ErrorCode::DAONameEmpty);
         }
-
-                if title.len() > MAX_DAO_NAME_LENGTH {
-            return err!(ErrorCode::DAONameTooLong);
-        } else if title.len() == 0 {
-            return err!(ErrorCode::DAONameEmpty);
-        }
-
 
         let dao = &mut self.dao;
-               Ok(())
+
+        let user = dao
+            .users
+            .clone()
+            .into_iter()
+            .find(|user| &user.user == &self.signer.clone().key());
+
+        match user {
+            Some(user) => {
+                require!(user.total_user_deposit_amount() >= dao.min_poll_tokens, ErrorCode::NotEnoughDepositsToStartPoll);
+            },
+            None => {
+                return err!(ErrorCode::NoDepositsForThisUserInThisDAO)
+            }
+        }
+        
+        Ok(())
     }
 
     pub fn update_analytics(&mut self) -> Result<()> {

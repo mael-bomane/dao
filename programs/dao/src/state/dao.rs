@@ -50,6 +50,15 @@ impl DAO {
     pub fn total_deposits(&self) -> usize {
         self.users.iter().map(|user| user.deposits.len()).sum()
     }
+    pub fn total_polls(&self) -> usize {
+        self.polls.len()
+    }
+
+    pub fn total_deposit_amount(&self) -> u64 {
+        self.users.iter().map(|user| {
+            user.deposits.iter().map(|deposit| deposit.amount).sum::<u64>()
+        }).sum()
+    }
 }
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
@@ -66,6 +75,8 @@ pub struct Poll {
     pub created_at: i64,
     pub bump: u8,
     pub executed: bool,
+    pub title: String,
+    pub content: String,
     pub votes: Vec<Vote>,
 }
 
@@ -75,6 +86,9 @@ impl Poll {
         + TIMESTAMP_LENGTH // created_at
         + BUMP_LENGTH 
         + 1 
+        + STRING_LENGTH_PREFIX * 2
+        + MAX_TITLE_LENGTH
+        + MAX_CONTENT_LENGTH
         + VECTOR_LENGTH_PREFIX; // bump
 }
 
@@ -100,6 +114,10 @@ impl User {
         + 8
         + TIMESTAMP_LENGTH
         + VECTOR_LENGTH_PREFIX;
+
+    pub fn total_user_deposit_amount(&self) -> u64 {
+        self.deposits.iter().map(|deposit| deposit.amount).sum()
+    }
 }
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
