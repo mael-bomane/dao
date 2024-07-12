@@ -19,7 +19,11 @@ pub struct Stake<'info> {
     pub auth: UncheckedAccount<'info>,
     #[account(
         mut,
-        realloc = DAO::LEN + dao.users.len() * User::LEN,
+        realloc = DAO::LEN + 
+        (if dao.users.iter().any(|i| i.user == user.key())
+         {dao.users.len() * User::LEN + dao.total_deposits() * Deposit::LEN}
+         else 
+         {(dao.users.len() + 1) * User::LEN + dao.total_deposits() + 1 * Deposit::LEN}),
         realloc::zero = false,
         realloc::payer = user,
         seeds = [b"dao", dao.creator.as_ref(), dao.mint.as_ref()],
@@ -79,7 +83,7 @@ impl<'info> Stake<'info> {
 
         transfer(cpi, amount)?;
 
-        let mut user = dao
+        let user = dao
             .users
             .clone()
             .into_iter()

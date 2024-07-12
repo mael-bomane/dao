@@ -25,6 +25,7 @@ pub struct DAO {
     pub mint: Pubkey,
     pub time: i64,
     pub threshold: u8,
+    pub min_poll_tokens: u64,
     pub approved: u64,
     pub rejected: u64,
     pub created_at: i64,
@@ -40,12 +41,15 @@ impl DAO {
         + PUBLIC_KEY_LENGTH * 2 // creator, mint 
         + 1 + 8
         + 1 // threshold 51 => 100
-        + 8 * 2 // approved, rejected 
+        + 8 * 3 // approved, rejected, min_poll_tokens 
         + TIMESTAMP_LENGTH * 2 // time, created_at
         + BUMP_LENGTH // bump
         + VECTOR_LENGTH_PREFIX * 2
         + STRING_LENGTH_PREFIX
         + MAX_DAO_NAME_LENGTH; 
+    pub fn total_deposits(&self) -> usize {
+        self.users.iter().map(|user| user.deposits.len()).sum()
+    }
 }
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
@@ -110,6 +114,8 @@ pub struct Deposit {
 
 impl Deposit {
     pub const LEN: usize = PUBLIC_KEY_LENGTH * 2 
-        + 8
-        + TIMESTAMP_LENGTH;
+        + 8 // amount
+        + 1 // bool
+        + 1 // option
+        + TIMESTAMP_LENGTH * 2;
 }

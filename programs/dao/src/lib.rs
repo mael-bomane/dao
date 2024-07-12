@@ -25,9 +25,11 @@ pub mod dao {
         ctx: Context<DAOCreate>,
         time: Time,
         threshold: u8,
+        min_poll_tokens: u64,
         name: String,
     ) -> Result<()> {
-        ctx.accounts.dao_create(&ctx.bumps, time, threshold, name)?;
+        ctx.accounts
+            .dao_create(&ctx.bumps, time, threshold, min_poll_tokens, name)?;
         ctx.accounts.update_analytics()
     }
 

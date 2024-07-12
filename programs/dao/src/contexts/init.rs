@@ -1,7 +1,5 @@
 use crate::analytics::Analytics;
 
-use std::collections::BTreeMap;
-
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
@@ -26,7 +24,7 @@ pub struct Init<'info> {
 }
 
 impl<'info> Init<'info> {
-    pub fn init(&mut self, bumps: &BTreeMap<String, u8>) -> Result<()> {
+    pub fn init(&mut self, bumps: &InitBumps) -> Result<()> {
         let analytics = &mut self.analytics;
 
         // pub token: u64,
@@ -43,8 +41,8 @@ impl<'info> Init<'info> {
         analytics.approved = 0;
         analytics.rejected = 0;
         analytics.created_at = Clock::get()?.unix_timestamp;
-        analytics.auth_bump = *bumps.get("auth").unwrap();
-        analytics.state_bump = *bumps.get("analytics").unwrap();
+        analytics.auth_bump = bumps.auth;
+        analytics.state_bump = bumps.analytics;
         Ok(())
     }
 }

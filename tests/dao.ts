@@ -152,7 +152,7 @@ describe("dao", () => {
   });
 
   it("create dao", async () => {
-    await program.methods.daoCreate({ twentyFourHours: {} }, 51, "Monolith DAO")
+    await program.methods.daoCreate({ twentyFourHours: {} }, 51, new BN(100), "Monolith DAO")
       .accounts({
         creator: user1.publicKey,
         auth,

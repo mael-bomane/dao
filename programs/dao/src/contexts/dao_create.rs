@@ -1,5 +1,5 @@
 use anchor_spl::associated_token::AssociatedToken;
-use anchor_spl::token::{transfer, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::token::{Mint, Token, TokenAccount};
 
 use crate::{
     constants::*,
@@ -7,12 +7,10 @@ use crate::{
     state::{Analytics, Time, DAO},
 };
 
-use std::collections::BTreeMap;
-
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(time: Time, threshold: u8, name: String)]
+#[instruction(time: Time, threshold: u8, min_poll_tokens: u64, sname: String)]
 pub struct DAOCreate<'info> {
     #[account(mut)]
     pub creator: Signer<'info>,
@@ -60,9 +58,10 @@ pub struct DAOCreate<'info> {
 impl<'info> DAOCreate<'info> {
     pub fn dao_create(
         &mut self,
-        bumps: &BTreeMap<String, u8>,
+        bumps: &DAOCreateBumps,
         time: Time,
         threshold: u8,
+        min_poll_tokens: u64,
         name: String,
     ) -> Result<()> {
         // pub creator: Pubkey,
@@ -92,11 +91,12 @@ impl<'info> DAOCreate<'info> {
         dao.mint = self.mint.key();
         dao.time = time.value();
         dao.threshold = threshold;
+        dao.min_poll_tokens = min_poll_tokens;
         dao.approved = 0;
         dao.rejected = 0;
         dao.created_at = Clock::get()?.unix_timestamp;
-        dao.dao_bump = *bumps.get("dao").unwrap();
-        dao.vault_bump = *bumps.get("vault").unwrap();
+        dao.dao_bump = bumps.dao;
+        dao.vault_bump = bumps.vault;
         dao.name = name;
         dao.polls = Vec::new();
         dao.users = Vec::new();
