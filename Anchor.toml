@@ -2,7 +2,7 @@
 seeds = false
 skip-lint = false
 [programs.localnet]
-dao_voting = "J8adapkvtdxjhnMLPkiX5sLD2uoALJhkSaXSQ47fR6sJ"
+dao = "J8adapkvtdxjhnMLPkiX5sLD2uoALJhkSaXSQ47fR6sJ"
 
 [registry]
 url = "https://api.apr.dev"

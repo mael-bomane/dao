@@ -771,7 +771,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "dao-voting"
+name = "dao"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",

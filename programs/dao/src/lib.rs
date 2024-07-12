@@ -11,7 +11,7 @@ use state::*;
 declare_id!("J8adapkvtdxjhnMLPkiX5sLD2uoALJhkSaXSQ47fR6sJ");
 
 #[program]
-pub mod dao_voting {
+pub mod dao {
 
     use state::Time;
 

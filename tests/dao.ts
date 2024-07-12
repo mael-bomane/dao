@@ -14,16 +14,16 @@ import {
   getOrCreateAssociatedTokenAccount,
   mintTo,
 } from "@solana/spl-token";
-import { DaoVoting } from "../target/types/dao_voting";
+import { Dao } from "../target/types/dao";
 import { BN } from "bn.js";
 
 const commitment: Commitment = "confirmed";
 
-describe("dao-voting", () => {
+describe("dao", () => {
 
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
-  const program = anchor.workspace.DaoVoting as Program<DaoVoting>;
+  const program = anchor.workspace.Dao as Program<Dao>;
   const connection: Connection = anchor.getProvider().connection;
 
   const user1 = new Keypair();
