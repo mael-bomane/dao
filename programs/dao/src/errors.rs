@@ -2,20 +2,14 @@ use anchor_lang::error_code;
 
 #[error_code]
 pub enum ErrorCode {
-    #[msg("Protocol Name Empty.")]
-    ProtocolNameEmpty,
-    #[msg("Protocol Name Too Long, 50 Characters Maximum.")]
-    ProtocolNameTooLong,
-    #[msg("Hacker Name Empty.")]
-    HackerNameEmpty,
-    #[msg("Hacker Name Too Long, 50 Characters Maximum.")]
-    HackerNameTooLong,
-    #[msg("Message empty.")]
-    MessageEmpty,
-    #[msg("Wrong Hack ID.")]
-    WrongHackID,
-    #[msg("Signer Not Protocol Owner.")]
-    SignerNotProtocolOwner,
+    #[msg("DAO Name Empty.")]
+    DAONameEmpty,
+    #[msg("DAO Name Too Long, 50 Characters Max.")]
+    DAONameTooLong,
+    #[msg("Threshold Error, 50% to 100%.")]
+    ThresholdError,
+    #[msg("Wrong DAO Mint.")]
+    WrongDAOMint,
     #[msg("Signer Not Program Upgrade Authority.")]
     SignerNotProgramUpgradeAuthority,
     #[msg("This Protocol Not Program Upgrade Authority.")]

@@ -1,14 +1,18 @@
 use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{transfer, Mint, Token, TokenAccount, Transfer};
 
-use crate::state::{Analytics, Time, DAO};
+use crate::{
+    constants::*,
+    errors::ErrorCode,
+    state::{Analytics, Time, DAO},
+};
 
 use std::collections::BTreeMap;
 
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(time: Time)]
+#[instruction(time: Time, threshold: u8, name: String)]
 pub struct DAOCreate<'info> {
     #[account(mut)]
     pub creator: Signer<'info>,
@@ -36,12 +40,12 @@ pub struct DAOCreate<'info> {
     #[account(
         init,
         payer = creator,
-        seeds = [b"vp_vault", creator.key().as_ref(), mint.key().as_ref()],
+        seeds = [b"vault", creator.key().as_ref(), mint.key().as_ref()],
         token::mint = mint,
         token::authority = auth,
         bump
     )]
-    pub vp_vault: Box<Account<'info, TokenAccount>>,
+    pub vault: Box<Account<'info, TokenAccount>>,
     #[account(
         mut,
         seeds = [b"analytics"],
@@ -54,28 +58,55 @@ pub struct DAOCreate<'info> {
 }
 
 impl<'info> DAOCreate<'info> {
-    pub fn dao_create(&mut self, bumps: &BTreeMap<String, u8>, time: Time) -> Result<()> {
+    pub fn dao_create(
+        &mut self,
+        bumps: &BTreeMap<String, u8>,
+        time: Time,
+        threshold: u8,
+        name: String,
+    ) -> Result<()> {
         // pub creator: Pubkey,
         // pub mint: Pubkey,
         // pub time: Time,
+        // pub threshold: u8,
         // pub approved: u64,
         // pub rejected: u64,
         // pub created_at: i64,
         // pub bump: u8,
+        // pub name: String,
         // pub polls: Vec<Poll>,
         // pub users: Vec<User>,
         // pub deposits: Vec<Deposit>,
+        if name.len() > MAX_DAO_NAME_LENGTH {
+            return err!(ErrorCode::DAONameTooLong);
+        } else if name.len() == 0 {
+            return err!(ErrorCode::DAONameEmpty);
+        }
+        require!(
+            threshold >= 50 && threshold <= 100,
+            ErrorCode::ThresholdError
+        );
+
         let dao = &mut self.dao;
         dao.creator = self.creator.key();
         dao.mint = self.mint.key();
         dao.time = time.value();
+        dao.threshold = threshold;
         dao.approved = 0;
         dao.rejected = 0;
         dao.created_at = Clock::get()?.unix_timestamp;
-        dao.bump = *bumps.get("dao").unwrap();
+        dao.dao_bump = *bumps.get("dao").unwrap();
+        dao.vault_bump = *bumps.get("vault").unwrap();
+        dao.name = name;
         dao.polls = Vec::new();
         dao.users = Vec::new();
         dao.deposits = Vec::new();
+        Ok(())
+    }
+
+    pub fn update_analytics(&mut self) -> Result<()> {
+        let analytics = &mut self.analytics;
+        analytics.daos += 1;
         Ok(())
     }
 }

@@ -21,8 +21,18 @@ pub mod dao {
         ctx.accounts.init(&ctx.bumps)
     }
 
-    pub fn dao_create(ctx: Context<DAOCreate>, time: Time) -> Result<()> {
-        ctx.accounts.dao_create(&ctx.bumps, time)
+    pub fn dao_create(
+        ctx: Context<DAOCreate>,
+        time: Time,
+        threshold: u8,
+        name: String,
+    ) -> Result<()> {
+        ctx.accounts.dao_create(&ctx.bumps, time, threshold, name)?;
+        ctx.accounts.update_analytics()
+    }
+
+    pub fn stake(ctx: Context<Stake>, amount: u64) -> Result<()> {
+        ctx.accounts.stake(amount)
     }
 }
 

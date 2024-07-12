@@ -1,8 +1,5 @@
 use crate::analytics::Analytics;
 
-use anchor_spl::associated_token::AssociatedToken;
-use anchor_spl::token::{transfer, Mint, Token, TokenAccount, Transfer};
-
 use std::collections::BTreeMap;
 
 use anchor_lang::prelude::*;
@@ -18,11 +15,6 @@ pub struct Init<'info> {
     /// CHECK: This is safe
     pub auth: UncheckedAccount<'info>,
     #[account(
-        seeds = [b"vault"],
-        bump
-    )]
-    pub vault: SystemAccount<'info>,
-    #[account(
         init,
         payer = signer,
         seeds = [b"analytics"],
@@ -30,8 +22,6 @@ pub struct Init<'info> {
         space = Analytics::LEN
     )]
     pub analytics: Account<'info, Analytics>,
-    pub token_program: Program<'info, Token>,
-    pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
 

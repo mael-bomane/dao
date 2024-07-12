@@ -42,18 +42,14 @@ describe("dao", () => {
     [Buffer.from("auth")],
     program.programId
   )[0];
-  const vault = PublicKey.findProgramAddressSync(
-    [Buffer.from("vault")],
-    program.programId
-  )[0];
   const dao = PublicKey.findProgramAddressSync(
     // seeds = [b"dao", creator.key().as_ref(), mint.key().as_ref()]
     [Buffer.from("dao"), user1.publicKey.toBytes(), mint.publicKey.toBytes()],
     program.programId
   )[0];
-  const vpVault = PublicKey.findProgramAddressSync(
+  const vault = PublicKey.findProgramAddressSync(
     // seeds = [b"vp_vault", creator.key().as_ref(), mint.key().as_ref()]
-    [Buffer.from("vp_vault"), user1.publicKey.toBytes(), mint.publicKey.toBytes()],
+    [Buffer.from("vault"), user1.publicKey.toBytes(), mint.publicKey.toBytes()],
     program.programId
   )[0];
   let user1Ata: Account;
@@ -96,8 +92,10 @@ describe("dao", () => {
       decimals,
       mint
     );
+
     console.log("Token : ", token.toBase58());
     mintAddress = token.toBase58();
+
     user1Ata = await getOrCreateAssociatedTokenAccount(
       connection,
       user1,
@@ -105,7 +103,8 @@ describe("dao", () => {
       user1.publicKey
     );
     console.log("User 1 Associated Token Aaccount : ", user1Ata.address.toBase58());
-    let sendToken = await mintTo(
+
+    let user1MintTo = await mintTo(
       connection,
       user1,
       token,
@@ -113,10 +112,30 @@ describe("dao", () => {
       user1.publicKey,
       100 * 1 * 10 ** decimals
     );
-    console.log(`https://explorer.solana.com/tx/${sendToken}?cluster=devnet`);
-    let tokenAmount = await connection.getTokenAccountBalance(user1Ata.address);
+    console.log(`https://explorer.solana.com/tx/${user1MintTo}?cluster=devnet`);
+    let user1TokenAmount = await connection.getTokenAccountBalance(user1Ata.address);
     console.log(
-      `minted ${tokenAmount.value.uiAmountString} ${token.toBase58()} tokens`
+      `minted ${user1TokenAmount.value.uiAmountString} ${token.toBase58()} tokens for user1`
+    );
+    user2Ata = await getOrCreateAssociatedTokenAccount(
+      connection,
+      user1,
+      token,
+      user2.publicKey
+    );
+
+    let user2MintTo = await mintTo(
+      connection,
+      user1,
+      token,
+      user2Ata.address,
+      user1.publicKey,
+      100 * 1 * 10 ** decimals
+    );
+    console.log(`https://explorer.solana.com/tx/${user2MintTo}?cluster=devnet`);
+    let user2TokenAmount = await connection.getTokenAccountBalance(user2Ata.address);
+    console.log(
+      `minted ${user2TokenAmount.value.uiAmountString} ${token.toBase58()} tokens for user2`
     );
   })
 
@@ -125,28 +144,51 @@ describe("dao", () => {
       .accounts({
         signer: user1.publicKey,
         auth,
-        vault,
-        analytics,
-      })
-      .signers([user1])
-      .rpc()
-      .then(confirmTx);;
-  });
-
-  it("create dao", async () => {
-    await program.methods.daoCreate({ twentyFourHours: {} })
-      .accounts({
-        creator: user1.publicKey,
-        auth,
-        dao,
-        signerAta: user1Ata.address,
-        vpVault,
-        mint: mint.publicKey,
         analytics,
       })
       .signers([user1])
       .rpc()
       .then(confirmTx);
+  });
+
+  it("create dao", async () => {
+    await program.methods.daoCreate({ twentyFourHours: {} }, 51, "Monolith DAO")
+      .accounts({
+        creator: user1.publicKey,
+        auth,
+        dao,
+        signerAta: user1Ata.address,
+        vault,
+        mint: mint.publicKey,
+        analytics,
+      })
+      .signers([user1])
+      .rpc()
+      .then(confirmTx)
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
+  });
+
+  it("user1 stake 100 tokens", async () => {
+    await program.methods.stake(amount)
+      .accounts({
+        user: user1.publicKey,
+        auth,
+        dao,
+        signerAta: user1Ata.address,
+        vault,
+        mint: mint.publicKey,
+        analytics,
+      })
+      .signers([user1])
+      .rpc()
+      .then(confirmTx)
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
   });
 });
 
