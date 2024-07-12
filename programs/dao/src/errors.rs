@@ -10,6 +10,10 @@ pub enum ErrorCode {
     PollTitleEmpty,
     #[msg("Poll Title Too Long, 50 Characters Max.")]
     PollTitleTooLong,
+    #[msg("Poll Content Empty.")]
+    PollContentEmpty,
+    #[msg("Poll Content Too Long, 280 Characters Max.")]
+    PollContentTooLong,
     #[msg("Threshold Error, 50% to 100%.")]
     ThresholdError,
     #[msg("Wrong DAO Mint.")]

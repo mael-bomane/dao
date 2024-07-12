@@ -68,10 +68,10 @@ impl<'info> PollCreate<'info> {
             return err!(ErrorCode::PollTitleTooLong);
         }
 
-        if content.len() > MAX_DAO_NAME_LENGTH {
-            return err!(ErrorCode::DAONameTooLong);
+        if content.len() > MAX_CONTENT_LENGTH {
+            return err!(ErrorCode::PollContentEmpty);
         } else if title.len() == 0 {
-            return err!(ErrorCode::DAONameEmpty);
+            return err!(ErrorCode::PollContentTooLong);
         }
 
         let dao = &mut self.dao;
