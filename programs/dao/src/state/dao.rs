@@ -33,7 +33,6 @@ pub struct DAO {
     pub name: String,
     pub polls: Vec<Poll>,
     pub users: Vec<User>,
-    pub deposits: Vec<Deposit>,
 }
 
 impl DAO {
@@ -44,7 +43,7 @@ impl DAO {
         + 8 * 2 // approved, rejected 
         + TIMESTAMP_LENGTH * 2 // time, created_at
         + BUMP_LENGTH // bump
-        + VECTOR_LENGTH_PREFIX * 3
+        + VECTOR_LENGTH_PREFIX * 2
         + STRING_LENGTH_PREFIX
         + MAX_DAO_NAME_LENGTH; 
 }
@@ -105,6 +104,7 @@ pub struct Deposit {
     pub mint: Pubkey,
     pub amount: u64,
     pub deactivating: bool,
+    pub deactivation_start: Option<i64>,
     pub created_at: i64,
 }
 

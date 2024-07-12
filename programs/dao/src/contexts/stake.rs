@@ -67,7 +67,6 @@ impl<'info> Stake<'info> {
         // pub name: String,
         // pub polls: Vec<Poll>,
         // pub users: Vec<User>,
-        // pub deposits: Vec<Deposit>,
         let dao = &mut self.dao;
 
         let accounts = Transfer {
@@ -80,7 +79,7 @@ impl<'info> Stake<'info> {
 
         transfer(cpi, amount)?;
 
-        let user = dao
+        let mut user = dao
             .users
             .clone()
             .into_iter()
@@ -95,10 +94,31 @@ impl<'info> Stake<'info> {
                     mint: self.mint.key(),
                     amount,
                     deactivating: false,
+                    deactivation_start: None,
                     created_at: Clock::get()?.unix_timestamp,
                 };
 
                 deposits.push(deposit);
+
+                let index = dao
+                    .users
+                    .clone()
+                    .into_iter()
+                    .position(|user| &user.user == &self.user.clone().key())
+                    .unwrap();
+                let mut voting_power = user.voting_power;
+                voting_power += amount;
+
+                let _ = std::mem::replace(
+                    &mut dao.users[index],
+                    User {
+                        user: user.user,
+                        voting_power,
+                        points: user.points,
+                        created_at: user.created_at,
+                        deposits,
+                    },
+                );
             }
             None => {
                 let deposit = Deposit {
@@ -106,6 +126,7 @@ impl<'info> Stake<'info> {
                     mint: self.mint.key(),
                     amount,
                     deactivating: false,
+                    deactivation_start: None,
                     created_at: Clock::get()?.unix_timestamp,
                 };
 

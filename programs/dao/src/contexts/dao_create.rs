@@ -100,7 +100,6 @@ impl<'info> DAOCreate<'info> {
         dao.name = name;
         dao.polls = Vec::new();
         dao.users = Vec::new();
-        dao.deposits = Vec::new();
         Ok(())
     }
 
