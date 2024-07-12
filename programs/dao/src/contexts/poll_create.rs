@@ -10,7 +10,7 @@ use crate::{
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(title: String, content: String, amount: u64)]
+#[instruction(title: String, content: String)]
 pub struct PollCreate<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
@@ -49,7 +49,7 @@ pub struct PollCreate<'info> {
 }
 
 impl<'info> PollCreate<'info> {
-    pub fn poll_create(&mut self, title: String, content: String, amount: u64) -> Result<()> {
+    pub fn poll_create(&mut self, title: String, content: String) -> Result<()> {
         // pub creator: Pubkey,
         // pub mint: Pubkey,
         // pub time: Time,
