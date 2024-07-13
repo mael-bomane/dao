@@ -7,7 +7,7 @@ use crate::{
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(choice: Choice)]
+#[instruction(poll: u64, choice: Choice)]
 pub struct VoteCreate<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
@@ -18,7 +18,7 @@ pub struct VoteCreate<'info> {
             dao.users.len() * User::LEN 
              + (dao.total_deposits() * Deposit::LEN)
              + (dao.total_polls() * Poll::LEN)
-             + (dao.total_votes() +1 * Vote::LEN)
+             + (dao.total_votes() + 1 * Vote::LEN)
         }),
         realloc::zero = false,
         realloc::payer = signer,
@@ -36,7 +36,7 @@ pub struct VoteCreate<'info> {
 }
 
 impl<'info> VoteCreate<'info> {
-    pub fn vote_create(&mut self, choice: Choice) -> Result<()> {
+    pub fn vote_create(&mut self, poll: usize, choice: Choice) -> Result<()> {
         // pub creator: Pubkey,
         // pub mint: Pubkey,
         // pub time: Time,
@@ -60,12 +60,16 @@ impl<'info> VoteCreate<'info> {
 
         match user {
             Some(user) => {
-                require!(user.total_user_deposit_amount() > 0, ErrorCode::NoVotingPowerForThisUserFoundInThisDAO);
-                        let user = &dao
-            .users
-            .clone()
-            .into_iter()
-            .find(|user| &user.user == &self.signer.clone().key());            },
+                require!(user.total_user_deposit_amount() > 0, ErrorCode::UserHaveNoVotingPowerInThisDAO);
+                let poll = &dao.polls[poll];
+                require!(Clock::get()?.unix_timestamp < poll.created_at + dao.time, ErrorCode::VotingPeriodExpired);
+                let vote = Vote {
+                    user: self.signer.key(),
+                    voting_power: user.voting_power,
+                    choice,
+                    created_at: Clock::get()?.unix_timestamp
+                };
+            },
             None => {
                 return err!(ErrorCode::NoDepositsForThisUserInThisDAO)
             }

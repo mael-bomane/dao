@@ -234,9 +234,15 @@ describe("dao", () => {
   });
 
   it("user1 start poll", async () => {
+    const title = "should i get hired ?";
+    const content = "i've been coding for 3 years (blockchain full-stack rust + typescript), self-taught + WBA/Turbin3 2023 Q3 cohort."
+
+    console.log("title length : ", title.length)
+    console.log("content length : ", content.length)
+
     await program.methods.pollCreate(
-      "should i get hired ?",
-      "i have only 3 years of experience in both crypto and coding, all self-taught + WBA/Turbin3 2023 Q3 cohort."
+      title,
+      content
     )
       .accounts({
         signer: user1.publicKey,
@@ -251,6 +257,23 @@ describe("dao", () => {
         console.log(daoDebug)
       });
   });
+
+  it("user1 vote 'approve' on poll 1", async () => {
+    await program.methods.voteCreate(new BN(1), { approve: {} })
+      .accounts({
+        signer: user1.publicKey,
+        dao,
+        analytics,
+      })
+      .signers([user1])
+      .rpc()
+      .then(confirmTx)
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
+  });
+
 
 });
 

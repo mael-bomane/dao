@@ -19,6 +19,12 @@ impl Time {
     }
 }
 
+#[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
+pub enum Choice {
+    Approve,
+    Reject,
+}
+
 #[account]
 pub struct DAO {
     pub creator: Pubkey,
@@ -66,11 +72,7 @@ impl DAO {
     }
 }
 
-#[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
-pub enum Choice {
-    Approve,
-    Reject,
-}
+
 
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]

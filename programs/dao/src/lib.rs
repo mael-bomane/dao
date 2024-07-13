@@ -40,8 +40,8 @@ pub mod dao {
         ctx.accounts.update_analytics()
     }
 
-    pub fn vote_create(ctx: Context<VoteCreate>, choice: Choice) -> Result<()> {
-        ctx.accounts.vote_create(choice)?;
+    pub fn vote_create(ctx: Context<VoteCreate>, poll: usize, choice: Choice) -> Result<()> {
+        ctx.accounts.vote_create(poll, choice)?;
         ctx.accounts.update_analytics()
     }
 }

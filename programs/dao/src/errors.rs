@@ -23,9 +23,9 @@ pub enum ErrorCode {
     #[msg("No Deposits For This User In This DAO.")]
     NoDepositsForThisUserInThisDAO,
     #[msg("No Voting Power For This User Found In This DAO.")]
-    NoVotingPowerForThisUserFoundInThisDAO,
-    #[msg("Program Not In Protocol List.")]
-    ProgramNotInProtocolList,
+    UserHaveNoVotingPowerInThisDAO,
+    #[msg("Voting Period Expired.")]
+    VotingPeriodExpired,
     #[msg("Wrong Program ID.")]
     WrongProgramID,
     #[msg("Mismatch Protocol Owner And Program Owner.")]
