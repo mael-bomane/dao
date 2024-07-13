@@ -46,7 +46,8 @@ impl DAO {
         + BUMP_LENGTH // bump
         + VECTOR_LENGTH_PREFIX * 2
         + STRING_LENGTH_PREFIX
-        + MAX_DAO_NAME_LENGTH; 
+        + MAX_DAO_NAME_LENGTH;
+
     pub fn total_deposits(&self) -> usize {
         self.users.iter().map(|user| user.deposits.len()).sum()
     }
@@ -58,6 +59,10 @@ impl DAO {
         self.users.iter().map(|user| {
             user.deposits.iter().map(|deposit| deposit.amount).sum::<u64>()
         }).sum()
+    }
+
+    pub fn total_votes(&self) -> usize {
+        self.polls.iter().map(|poll| poll.votes.len()).sum()
     }
 }
 
@@ -73,7 +78,6 @@ pub struct Poll {
     pub creator: Pubkey,
     pub dao: Pubkey,
     pub created_at: i64,
-    pub bump: u8,
     pub executed: bool,
     pub title: String,
     pub content: String,
@@ -84,8 +88,7 @@ impl Poll {
     pub const LEN: usize = DISCRIMINATOR_LENGTH
         + PUBLIC_KEY_LENGTH * 2 // creator, dao 
         + TIMESTAMP_LENGTH // created_at
-        + BUMP_LENGTH 
-        + 1 
+        + BOOL_LENGTH 
         + STRING_LENGTH_PREFIX * 2
         + MAX_TITLE_LENGTH
         + MAX_CONTENT_LENGTH
@@ -98,6 +101,13 @@ pub struct Vote {
     pub voting_power: u64,
     pub choice: Choice,
     pub created_at: i64,
+}
+
+impl Vote {
+    pub const LEN: usize = PUBLIC_KEY_LENGTH 
+        + 8 // voting_power 
+        + 1 // enum
+        + TIMESTAMP_LENGTH;
 }
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
@@ -133,7 +143,7 @@ pub struct Deposit {
 impl Deposit {
     pub const LEN: usize = PUBLIC_KEY_LENGTH * 2 
         + 8 // amount
-        + 1 // bool
+        + BOOL_LENGTH // bool
         + 1 // option
         + TIMESTAMP_LENGTH * 2;
 }

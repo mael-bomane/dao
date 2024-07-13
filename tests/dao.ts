@@ -232,6 +232,26 @@ describe("dao", () => {
         console.log(daoDebug)
       });
   });
+
+  it("user1 start poll", async () => {
+    await program.methods.pollCreate(
+      "should i get hired ?",
+      "i have only 3 years of experience in both crypto and coding, all self-taught + WBA/Turbin3 2023 Q3 cohort."
+    )
+      .accounts({
+        signer: user1.publicKey,
+        dao,
+        analytics,
+      })
+      .signers([user1])
+      .rpc()
+      .then(confirmTx)
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
+  });
+
 });
 
 const confirmTx = async (signature: string) => {

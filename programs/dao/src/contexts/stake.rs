@@ -2,7 +2,7 @@ use anchor_spl::associated_token::AssociatedToken;
 use anchor_spl::token::{transfer, Mint, Token, TokenAccount, Transfer};
 
 use crate::errors::ErrorCode;
-use crate::state::{Analytics, Deposit, User, Poll, DAO};
+use crate::state::{Analytics, Deposit, User, Poll, Vote, DAO};
 
 use anchor_lang::prelude::*;
 
@@ -23,9 +23,15 @@ pub struct Stake<'info> {
         (if dao.users.iter().any(|i| i.user == user.key())
          {dao.users.len() * User::LEN 
              + (dao.total_deposits() + 1 * Deposit::LEN)
-             + (dao.total_polls() * Poll::LEN)}
+             + (dao.total_polls() * Poll::LEN)
+             + (dao.total_votes() * Vote::LEN)}
          else 
-         {(dao.users.len() + 1) * User::LEN + (dao.total_deposits() + 1) * Deposit::LEN + (dao.total_polls() * Poll::LEN)}),
+         {(
+             dao.users.len() + 1) * User::LEN 
+             + (dao.total_deposits() + 1) * Deposit::LEN 
+             + (dao.total_polls() * Poll::LEN)
+             + (dao.total_votes() * Vote::LEN)
+         }),
         realloc::zero = false,
         realloc::payer = user,
         seeds = [b"dao", dao.creator.as_ref(), dao.mint.as_ref()],

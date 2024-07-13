@@ -1,14 +1,14 @@
 use crate::{
     constants::*,
     errors::ErrorCode,
-    state::{Analytics, Poll, User, Deposit, Vote, DAO},
+    state::{Analytics, Deposit, Poll, User, Vote, DAO}, Choice,
 };
 
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(title: String, content: String)]
-pub struct PollCreate<'info> {
+#[instruction(choice: Choice)]
+pub struct VoteCreate<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(
@@ -17,8 +17,8 @@ pub struct PollCreate<'info> {
         ({
             dao.users.len() * User::LEN 
              + (dao.total_deposits() * Deposit::LEN)
-             + (dao.total_polls() + 1 * Poll::LEN)
-             + (dao.total_votes() * Vote::LEN)
+             + (dao.total_polls() * Poll::LEN)
+             + (dao.total_votes() +1 * Vote::LEN)
         }),
         realloc::zero = false,
         realloc::payer = signer,
@@ -35,8 +35,8 @@ pub struct PollCreate<'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl<'info> PollCreate<'info> {
-    pub fn poll_create(&mut self, title: String, content: String) -> Result<()> {
+impl<'info> VoteCreate<'info> {
+    pub fn vote_create(&mut self, choice: Choice) -> Result<()> {
         // pub creator: Pubkey,
         // pub mint: Pubkey,
         // pub time: Time,
@@ -49,18 +49,7 @@ impl<'info> PollCreate<'info> {
         // pub polls: Vec<Poll>,
         // pub users: Vec<User>,
         // pub deposits: Vec<Deposit>,
-        if title.len() > MAX_TITLE_LENGTH {
-            return err!(ErrorCode::PollTitleEmpty);
-        } else if title.len() == 0 {
-            return err!(ErrorCode::PollTitleTooLong);
-        }
-
-        if content.len() > MAX_CONTENT_LENGTH {
-            return err!(ErrorCode::PollContentEmpty);
-        } else if title.len() == 0 {
-            return err!(ErrorCode::PollContentTooLong);
-        }
-
+        
         let dao = &mut self.dao;
 
         let user = &dao
@@ -71,18 +60,12 @@ impl<'info> PollCreate<'info> {
 
         match user {
             Some(user) => {
-                require!(user.total_user_deposit_amount() >= dao.min_poll_tokens, ErrorCode::NotEnoughDepositsToStartPoll);
-                let poll = Poll {
-                    creator: self.signer.key(),
-                    dao: dao.key(),
-                    created_at: Clock::get()?.unix_timestamp,
-                    executed: false,
-                    title,
-                    content,
-                    votes: Vec::new()
-                };
-                dao.polls.push(poll);
-            },
+                require!(user.total_user_deposit_amount() > 0, ErrorCode::NoVotingPowerForThisUserFoundInThisDAO);
+                        let user = &dao
+            .users
+            .clone()
+            .into_iter()
+            .find(|user| &user.user == &self.signer.clone().key());            },
             None => {
                 return err!(ErrorCode::NoDepositsForThisUserInThisDAO)
             }

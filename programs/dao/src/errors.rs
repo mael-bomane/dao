@@ -22,8 +22,8 @@ pub enum ErrorCode {
     NotEnoughDepositsToStartPoll,
     #[msg("No Deposits For This User In This DAO.")]
     NoDepositsForThisUserInThisDAO,
-    #[msg("Program Already In Protocol List.")]
-    ProgramAlreadyInProtocolList,
+    #[msg("No Voting Power For This User Found In This DAO.")]
+    NoVotingPowerForThisUserFoundInThisDAO,
     #[msg("Program Not In Protocol List.")]
     ProgramNotInProtocolList,
     #[msg("Wrong Program ID.")]

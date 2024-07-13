@@ -13,8 +13,6 @@ declare_id!("J8adapkvtdxjhnMLPkiX5sLD2uoALJhkSaXSQ47fR6sJ");
 #[program]
 pub mod dao {
 
-    use state::Time;
-
     use super::*;
 
     pub fn init(ctx: Context<Init>) -> Result<()> {
@@ -36,7 +34,14 @@ pub mod dao {
     pub fn stake(ctx: Context<Stake>, amount: u64) -> Result<()> {
         ctx.accounts.stake(amount)
     }
-}
 
-#[derive(Accounts)]
-pub struct Initialize {}
+    pub fn poll_create(ctx: Context<PollCreate>, title: String, content: String) -> Result<()> {
+        ctx.accounts.poll_create(title, content)?;
+        ctx.accounts.update_analytics()
+    }
+
+    pub fn vote_create(ctx: Context<VoteCreate>, choice: Choice) -> Result<()> {
+        ctx.accounts.vote_create(choice)?;
+        ctx.accounts.update_analytics()
+    }
+}
