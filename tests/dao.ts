@@ -6,7 +6,6 @@ import {
   Keypair,
   LAMPORTS_PER_SOL,
   PublicKey,
-  SystemProgram,
 } from "@solana/web3.js";
 import {
   Account,
@@ -21,7 +20,6 @@ const commitment: Commitment = "confirmed";
 
 describe("dao", () => {
 
-  // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
   const program = anchor.workspace.Dao as Program<Dao>;
   const connection: Connection = anchor.getProvider().connection;
@@ -48,7 +46,7 @@ describe("dao", () => {
     program.programId
   )[0];
   const vault = PublicKey.findProgramAddressSync(
-    // seeds = [b"vp_vault", creator.key().as_ref(), mint.key().as_ref()]
+    // seeds = [b"vault", creator.key().as_ref(), mint.key().as_ref()]
     [Buffer.from("vault"), user1.publicKey.toBytes(), mint.publicKey.toBytes()],
     program.programId
   )[0];
@@ -57,8 +55,6 @@ describe("dao", () => {
   let user3Ata: Account;
 
   const decimals = 6;
-  const amount = new BN(200 * 1 * 10 ** decimals);
-
   before(async () => {
     await anchor
       .getProvider()
@@ -154,8 +150,8 @@ describe("dao", () => {
       user1.publicKey,
       100 * 1 * 10 ** decimals
     );
-    console.log(`https://explorer.solana.com/tx/${user2MintTo}?cluster=devnet`);
-    let user3TokenAmount = await connection.getTokenAccountBalance(user2Ata.address);
+    console.log(`https://explorer.solana.com/tx/${user3MintTo}?cluster=devnet`);
+    let user3TokenAmount = await connection.getTokenAccountBalance(user3Ata.address);
     console.log(
       `minted ${user3TokenAmount.value.uiAmountString} ${token.toBase58()} tokens for user3`
     );
@@ -258,7 +254,7 @@ describe("dao", () => {
       });
   });
 
-  it("user1 vote 'approve' on poll 1", async () => {
+  it("user1 vote 'approve' on poll 0 /w 100 voting power", async () => {
     await program.methods.voteCreate(new BN(0), { approve: {} })
       .accounts({
         signer: user1.publicKey,
@@ -266,6 +262,22 @@ describe("dao", () => {
         analytics,
       })
       .signers([user1])
+      .rpc()
+      .then(confirmTx)
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
+  });
+
+  it("user2 vote 'reject' on poll 0 /w 50 voting power", async () => {
+    await program.methods.voteCreate(new BN(0), { reject: {} })
+      .accounts({
+        signer: user2.publicKey,
+        dao,
+        analytics,
+      })
+      .signers([user2])
       .rpc()
       .then(confirmTx)
       .then(async () => {

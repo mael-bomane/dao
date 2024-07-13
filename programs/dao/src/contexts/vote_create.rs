@@ -1,5 +1,4 @@
 use crate::{
-    constants::*,
     errors::ErrorCode,
     state::{Analytics, Deposit, Poll, User, Vote, DAO}, Choice,
 };
