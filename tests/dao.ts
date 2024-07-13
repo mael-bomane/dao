@@ -270,6 +270,22 @@ describe("dao", () => {
       });
   });
 
+  xit("user1 tries voting twice", async () => {
+    await program.methods.voteCreate(new BN(0), { approve: {} })
+      .accounts({
+        signer: user1.publicKey,
+        dao,
+        analytics,
+      })
+      .signers([user1])
+      .rpc()
+      .then(confirmTx)
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
+  });
+
   it("user2 vote 'reject' on poll 0 /w 50 voting power", async () => {
     await program.methods.voteCreate(new BN(0), { reject: {} })
       .accounts({

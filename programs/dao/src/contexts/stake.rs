@@ -118,6 +118,7 @@ impl<'info> Stake<'info> {
                     .into_iter()
                     .position(|user| &user.user == &self.user.clone().key())
                     .unwrap();
+
                 let mut voting_power = user.voting_power;
                 voting_power += amount;
 

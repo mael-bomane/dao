@@ -1,7 +1,7 @@
 use crate::{
     constants::*,
     errors::ErrorCode,
-    state::{Analytics, Poll, User, Deposit, Vote, DAO},
+    state::{Analytics, Poll, User, Deposit, Vote, DAO, Status},
 };
 
 use anchor_lang::prelude::*;
@@ -74,9 +74,9 @@ impl<'info> PollCreate<'info> {
                 require!(user.total_user_deposit_amount() >= dao.min_poll_tokens, ErrorCode::NotEnoughDepositsToStartPoll);
                 let poll = Poll {
                     creator: self.signer.key(),
-                    dao: dao.key(),
                     created_at: Clock::get()?.unix_timestamp,
                     executed: false,
+                    status: Status::Voting,
                     title,
                     content,
                     votes: Vec::new()

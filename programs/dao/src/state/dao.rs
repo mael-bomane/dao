@@ -25,6 +25,13 @@ pub enum Choice {
     Reject,
 }
 
+#[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
+pub enum Status {
+    Approved,
+    Rejected,
+    Voting
+}
+
 #[account]
 pub struct DAO {
     pub creator: Pubkey,
@@ -70,6 +77,16 @@ impl DAO {
     pub fn total_votes(&self) -> usize {
         self.polls.iter().map(|poll| poll.votes.len()).sum()
     }
+    
+    pub fn reward_points(&mut self, poll_id: usize) {
+        if let Some(poll) = self.polls.get(poll_id) {
+            for vote in &poll.votes {
+                if let Some(user) = self.users.iter_mut().find(|user| user.user == vote.user) {
+                    user.points += vote.voting_power;
+                }
+            }
+        }
+    }
 }
 
 
@@ -78,9 +95,9 @@ impl DAO {
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
 pub struct Poll {
     pub creator: Pubkey,
-    pub dao: Pubkey,
     pub created_at: i64,
     pub executed: bool,
+    pub status: Status,
     pub title: String,
     pub content: String,
     pub votes: Vec<Vote>,
@@ -88,13 +105,35 @@ pub struct Poll {
 
 impl Poll {
     pub const LEN: usize = DISCRIMINATOR_LENGTH
-        + PUBLIC_KEY_LENGTH * 2 // creator, dao 
+        + PUBLIC_KEY_LENGTH // creator 
         + TIMESTAMP_LENGTH // created_at
         + BOOL_LENGTH 
         + STRING_LENGTH_PREFIX * 2
         + MAX_TITLE_LENGTH
         + MAX_CONTENT_LENGTH
         + VECTOR_LENGTH_PREFIX; // bump
+
+    pub fn is_approved(&self) -> bool {
+        let mut approve_power = 0u64;
+        let mut reject_power = 0u64;
+
+        for vote in &self.votes {
+            match vote.choice {
+                Choice::Approve => approve_power += vote.voting_power,
+                Choice::Reject => reject_power += vote.voting_power,
+            }
+        }
+
+        approve_power > reject_power
+    }
+
+    pub fn reward_participants(&self, dao: &mut DAO) {
+        for vote in &self.votes {
+            if let Some(user) = dao.users.iter_mut().find(|user| user.user == vote.user) {
+                user.points += vote.voting_power;
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]

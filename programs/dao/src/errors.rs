@@ -28,8 +28,8 @@ pub enum ErrorCode {
     VotingPeriodExpired,
     #[msg("User Already Voted This Poll.")]
     UserAlreadyVotedThisPoll,
-    #[msg("Mismatch Protocol Owner And Program Owner.")]
-    MismatchProtocolOwnerAndProgramOwner,
-    #[msg("No Mint Provided.")]
-    NoMintProvided,
+    #[msg("Wait For Voting Period To End.")]
+    WaitForVotingPeriodToEnd,
+    #[msg("Poll Already Executed.")]
+    PollAlreadyExecuted,
 }

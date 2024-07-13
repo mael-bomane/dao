@@ -9,6 +9,7 @@ pub struct Analytics {
     pub polls: u64,
     pub approved: u64,
     pub rejected: u64,
+    pub points: u64,
     pub created_at: i64,
     pub auth_bump: u8,
     pub state_bump: u8,
@@ -17,7 +18,7 @@ pub struct Analytics {
 impl Analytics {
     pub const LEN: usize = DISCRIMINATOR_LENGTH
         + PUBLIC_KEY_LENGTH * 2 // token, vault
-        + 8 * 4 // daos, polls, approved, rejected 
+        + 8 * 5 // daos, polls, approved, rejected, points 
         + TIMESTAMP_LENGTH // created_at
         + BUMP_LENGTH * 2
         + VECTOR_LENGTH_PREFIX; // bump
