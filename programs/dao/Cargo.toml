@@ -1,7 +1,7 @@
 [package]
 name = "dao"
 version = "0.1.0"
-description = "Created with Anchor"
+description = "program for creating polling dao's by staking tokens, executed polls reward points to voting users"
 edition = "2021"
 
 [lib]

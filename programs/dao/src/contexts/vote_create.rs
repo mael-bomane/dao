@@ -7,7 +7,7 @@ use crate::{
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(poll: u64, choice: Choice)]
+#[instruction(poll: usize, choice: Choice)]
 pub struct VoteCreate<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
@@ -23,7 +23,8 @@ pub struct VoteCreate<'info> {
         realloc::zero = false,
         realloc::payer = signer,
         seeds = [b"dao", dao.creator.as_ref(), dao.mint.as_ref()],
-        bump = dao.dao_bump 
+        bump = dao.dao_bump, 
+        constraint = !dao.polls[poll].votes.clone().into_iter().any(|user| user.user == signer.key()) @ ErrorCode::UserAlreadyVotedThisPoll
     )]
     pub dao: Box<Account<'info, DAO>>,
     #[account(

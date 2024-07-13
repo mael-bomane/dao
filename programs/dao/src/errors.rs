@@ -26,8 +26,8 @@ pub enum ErrorCode {
     UserHaveNoVotingPowerInThisDAO,
     #[msg("Voting Period Expired.")]
     VotingPeriodExpired,
-    #[msg("Wrong Program ID.")]
-    WrongProgramID,
+    #[msg("User Already Voted This Poll.")]
+    UserAlreadyVotedThisPoll,
     #[msg("Mismatch Protocol Owner And Program Owner.")]
     MismatchProtocolOwnerAndProgramOwner,
     #[msg("No Mint Provided.")]
