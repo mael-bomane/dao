@@ -259,7 +259,7 @@ describe("dao", () => {
   });
 
   it("user1 vote 'approve' on poll 1", async () => {
-    await program.methods.voteCreate(new BN(1), { approve: {} })
+    await program.methods.voteCreate(new BN(0), { approve: {} })
       .accounts({
         signer: user1.publicKey,
         dao,

@@ -7,7 +7,7 @@ use crate::{
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(poll: usize, choice: Choice)]
+#[instruction(index: u64, choice: Choice)]
 pub struct VoteCreate<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
@@ -24,7 +24,7 @@ pub struct VoteCreate<'info> {
         realloc::payer = signer,
         seeds = [b"dao", dao.creator.as_ref(), dao.mint.as_ref()],
         bump = dao.dao_bump, 
-        constraint = !dao.polls[poll].votes.clone().into_iter().any(|user| user.user == signer.key()) @ ErrorCode::UserAlreadyVotedThisPoll
+        constraint = !dao.polls[usize::from(index as usize)].votes.clone().into_iter().any(|user| user.user == signer.key()) @ ErrorCode::UserAlreadyVotedThisPoll
     )]
     pub dao: Box<Account<'info, DAO>>,
     #[account(
@@ -37,7 +37,7 @@ pub struct VoteCreate<'info> {
 }
 
 impl<'info> VoteCreate<'info> {
-    pub fn vote_create(&mut self, poll: usize, choice: Choice) -> Result<()> {
+    pub fn vote_create(&mut self, index: u64, choice: Choice) -> Result<()> {
         // pub creator: Pubkey,
         // pub mint: Pubkey,
         // pub time: Time,
@@ -62,14 +62,15 @@ impl<'info> VoteCreate<'info> {
         match user {
             Some(user) => {
                 require!(user.total_user_deposit_amount() > 0, ErrorCode::UserHaveNoVotingPowerInThisDAO);
-                let poll = &dao.polls[poll];
-                require!(Clock::get()?.unix_timestamp < poll.created_at + dao.time, ErrorCode::VotingPeriodExpired);
+                let poll = dao.polls[usize::from(index as usize)].clone();
+                require!(Clock::get()?.unix_timestamp < (poll.created_at + dao.time), ErrorCode::VotingPeriodExpired);
                 let vote = Vote {
                     user: self.signer.key(),
                     voting_power: user.voting_power,
                     choice,
                     created_at: Clock::get()?.unix_timestamp
                 };
+                dao.polls[usize::from(index as usize)].votes.push(vote);
             },
             None => {
                 return err!(ErrorCode::NoDepositsForThisUserInThisDAO)
