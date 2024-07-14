@@ -169,8 +169,9 @@ describe("dao", () => {
       .then(confirmTx);
   });
 
-  it("create dao", async () => {
-    await program.methods.daoCreate({ twentyFourHours: {} }, 51, new BN(100), "Monolith DAO")
+  it("user1 create a dao with 51% threshold, min. 100 tokens required to start poll", async () => {
+    // await program.methods.daoCreate({ twentyFourHours: {} }, 51, new BN(100), "Monolith DAO")
+    await program.methods.daoCreate({ fiveSeconds: {} }, 51, new BN(100), "Monolith DAO")
       .accounts({
         creator: user1.publicKey,
         auth,
@@ -302,6 +303,38 @@ describe("dao", () => {
       });
   });
 
+  xit("user1 tries to execute poll 0 before end of voting period", async () => {
+    await program.methods.pollExecute(new BN(0))
+      .accounts({
+        signer: user1.publicKey,
+        dao,
+        analytics,
+      })
+      .signers([user1])
+      .rpc()
+      .then(confirmTx)
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
+  });
+
+  it("user1 execute poll 0 after end of voting period", async () => {
+    setTimeout(async () =>
+      await program.methods.pollExecute(new BN(0))
+        .accounts({
+          signer: user1.publicKey,
+          dao,
+          analytics,
+        })
+        .signers([user1])
+        .rpc()
+        .then(confirmTx)
+        .then(async () => {
+          const daoDebug = await program.account.dao.fetch(dao);
+          console.log(daoDebug)
+        }), 5000);
+  }).timeout(6000);
 
 });
 

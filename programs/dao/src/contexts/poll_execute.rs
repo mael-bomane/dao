@@ -1,6 +1,6 @@
 use crate::{
     errors::ErrorCode,
-    state::{Analytics, Deposit, Poll, User, Vote, DAO}, Choice,
+    state::{Analytics, Deposit, Poll, User, Vote, DAO, Status}, Choice,
 };
 
 use anchor_lang::prelude::*;
@@ -14,8 +14,7 @@ pub struct PollExecute<'info> {
         mut,
         seeds = [b"dao", dao.creator.as_ref(), dao.mint.as_ref()],
         bump = dao.dao_bump, 
-        constraint = 
-        Clock::get()?.unix_timestamp > ( dao.polls[usize::from(index as usize)].created_at + dao.time ) @ ErrorCode::WaitForVotingPeriodToEnd
+        constraint = Clock::get()?.unix_timestamp > ( dao.polls[usize::from(index as usize)].created_at + dao.time ) @ ErrorCode::WaitForVotingPeriodToEnd
     )]
     pub dao: Box<Account<'info, DAO>>,
     #[account(
@@ -48,22 +47,46 @@ impl<'info> PollExecute<'info> {
 
         let is_approved = dao.polls[usize::from(index as usize)].is_approved();
 
+        let prev = dao.polls[usize::from(index as usize)].clone();
+        
         match is_approved {
             true => {
-                dao.polls[usize::from(index as usize)].votes.clone().into_iter();
+                dao.approved += 1;
+                analytics.approved += 1;
+                let _ = std::mem::replace(
+                    &mut dao.polls[usize::from(index as usize)],
+                    Poll {
+                        creator: prev.creator,
+                        title: prev.title,
+                        content: prev.content,
+                        executed: true,
+                        status: Status::Approved,
+                        created_at: prev.created_at,
+                        votes: prev.votes
+                    },
+                );
             },
             false => {
+                dao.rejected += 1;
+                analytics.approved += 1;
+                let _ = std::mem::replace(
+                    &mut dao.polls[usize::from(index as usize)],
+                    Poll {
+                        creator: prev.creator,
+                        title: prev.title,
+                        content: prev.content,
+                        executed: true,
+                        status: Status::Rejected,
+                        created_at: prev.created_at,
+                        votes: prev.votes
+                    },
+                );
 
             }
         }
 
         dao.reward_points(usize::from(index as usize));
                 
-        Ok(())
-    }
-
-    pub fn update_analytics(&mut self) -> Result<()> {
-        analytics.daos += 1;
         Ok(())
     }
 }

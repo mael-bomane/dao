@@ -44,4 +44,8 @@ pub mod dao {
         ctx.accounts.vote_create(poll, choice)?;
         ctx.accounts.update_analytics()
     }
+
+    pub fn poll_execute(ctx: Context<PollExecute>, poll: u64) -> Result<()> {
+        ctx.accounts.poll_execute(poll)
+    }
 }
