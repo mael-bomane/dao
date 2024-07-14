@@ -15,6 +15,7 @@ import {
 } from "@solana/spl-token";
 import { Dao } from "../target/types/dao";
 import { BN } from "bn.js";
+import * as assert from "assert";
 
 const commitment: Commitment = "confirmed";
 
@@ -184,10 +185,10 @@ describe("dao", () => {
       .signers([user1])
       .rpc()
       .then(confirmTx)
-    // .then(async () => {
-    //   const daoDebug = await program.account.dao.fetch(dao);
-    //   console.log(daoDebug)
-    // });
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
   });
 
   it("user1 stake 100 tokens", async () => {
@@ -204,10 +205,10 @@ describe("dao", () => {
       .signers([user1])
       .rpc()
       .then(confirmTx)
-    // .then(async () => {
-    //   const daoDebug = await program.account.dao.fetch(dao);
-    //   console.log(daoDebug);
-    // });
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug);
+      });
   });
 
   it("user2 stake 50 tokens", async () => {
@@ -224,10 +225,10 @@ describe("dao", () => {
       .signers([user2])
       .rpc()
       .then(confirmTx)
-    // .then(async () => {
-    //   const daoDebug = await program.account.dao.fetch(dao);
-    //   console.log(daoDebug)
-    // });
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
   });
 
   it("user1 start poll", async () => {
@@ -249,10 +250,10 @@ describe("dao", () => {
       .signers([user1])
       .rpc()
       .then(confirmTx)
-    // .then(async () => {
-    //   const daoDebug = await program.account.dao.fetch(dao);
-    //   console.log(daoDebug)
-    // });
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
   });
 
   it("user1 vote 'approve' on poll 0 /w 100 voting power", async () => {
@@ -265,42 +266,39 @@ describe("dao", () => {
       .signers([user1])
       .rpc()
       .then(confirmTx)
-    // .then(async () => {
-    //   const daoDebug = await program.account.dao.fetch(dao);
-    //   console.log(daoDebug)
-    // });
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
   });
 
   it("user1 tries voting twice", async () => {
-    await program.methods.voteNew(new BN(0), { approve: {} })
-      .accounts({
-        signer: user1.publicKey,
-        dao,
-        analytics,
-      })
-      .signers([user1])
-      .rpc()
-      .then(confirmTx)
-    // .then(async () => {
-    //   const daoDebug = await program.account.dao.fetch(dao);
-    //   console.log(daoDebug)
-    // });
+    await assert.rejects((async () => {
+      await program.methods.voteNew(new BN(0), { approve: {} })
+        .accounts({
+          signer: user1.publicKey,
+          dao,
+          analytics,
+        })
+        .signers([user1])
+        .rpc()
+        .then(confirmTx)
+
+    })());
   });
 
   it("user3 tries to vote without voting power", async () => {
-    await program.methods.voteNew(new BN(0), { approve: {} })
-      .accounts({
-        signer: user3.publicKey,
-        dao,
-        analytics,
-      })
-      .signers([user3])
-      .rpc()
-      .then(confirmTx)
-    // .then(async () => {
-    //   const daoDebug = await program.account.dao.fetch(dao);
-    //   console.log(daoDebug)
-    // });
+    await assert.rejects((async () => {
+      await program.methods.voteNew(new BN(0), { approve: {} })
+        .accounts({
+          signer: user3.publicKey,
+          dao,
+          analytics,
+        })
+        .signers([user3])
+        .rpc()
+        .then(confirmTx)
+    })()); // current function returns rejected promise
   });
 
   it("user2 vote 'reject' on poll 0 /w 50 voting power", async () => {
@@ -313,22 +311,24 @@ describe("dao", () => {
       .signers([user2])
       .rpc()
       .then(confirmTx)
-    // .then(async () => {
-    //   const daoDebug = await program.account.dao.fetch(dao);
-    //   console.log(daoDebug)
-    // });
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
   });
 
   it("user1 tries to execute poll 0 before end of voting period", async () => {
-    await program.methods.pollExecute(new BN(0))
-      .accounts({
-        signer: user1.publicKey,
-        dao,
-        analytics,
-      })
-      .signers([user1])
-      .rpc()
-      .then(confirmTx);
+    await assert.rejects((async () => {
+      await program.methods.pollExecute(new BN(0))
+        .accounts({
+          signer: user1.publicKey,
+          dao,
+          analytics,
+        })
+        .signers([user1])
+        .rpc()
+        .then(confirmTx);
+    })());
   });
 
   it("user1 execute poll 0 after end of voting period", async () => {
@@ -342,10 +342,6 @@ describe("dao", () => {
         .signers([user1])
         .rpc()
         .then(confirmTx)
-      // .then(async () => {
-      //   const daoDebug = await program.account.dao.fetch(dao);
-      //   console.log(daoDebug)
-      // })
       , 5000);
   }).timeout(6000);
 
@@ -359,10 +355,10 @@ describe("dao", () => {
       .signers([user1])
       .rpc()
       .then(confirmTx)
-    // .then(async () => {
-    //   const daoDebug = await program.account.dao.fetch(dao);
-    //   console.log(daoDebug)
-    // });
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
   });
 
   it("user1 claim his deactivated staked deposits", async () => {
@@ -372,7 +368,6 @@ describe("dao", () => {
           user: user1.publicKey,
           auth,
           dao,
-          daoCreator: user1.publicKey,
           signerAta: user1Ata.address,
           mint: mint.publicKey,
           vault,
@@ -384,42 +379,6 @@ describe("dao", () => {
 
     }, 6000)
   }).timeout(7000);
-
-  it("user1 claim his deactivated staked deposits", async () => {
-    setTimeout(async () => {
-      await program.methods.stakeClaim()
-        .accounts({
-          user: user1.publicKey,
-          auth,
-          dao,
-          daoCreator: user1.publicKey,
-          signerAta: user1Ata.address,
-          mint: mint.publicKey,
-          vault,
-          analytics,
-        })
-        .signers([user1])
-        .rpc()
-        .then(confirmTx);
-
-    }, 6000)
-  }).timeout(7000);
-
-  // it("shows poll results", async () => {
-  //   const token = new PublicKey(mintAddress);
-  //   setTimeout(async () => {
-  //     const daoDebug = await program.account.dao.fetch(dao);
-  //     daoDebug.users.forEach((user) => {
-  //       console.log(user)
-  //     });
-  //     daoDebug.polls.forEach((poll) => {
-  //       console.log(poll)
-  //       poll.votes.forEach((vote) => {
-  //         console.log(vote)
-  //       })
-  //     });
-  //   }, 9000)
-  // }).timeout(10000);
 
   after(async () => {
     setTimeout(async () => {
@@ -428,7 +387,18 @@ describe("dao", () => {
       console.log(
         `User1 now have ${user1TokenAmount.value.uiAmountString} ${token.toBase58()} tokens`
       );
-    }, 30000)
+      const daoDebug = await program.account.dao.fetch(dao);
+      daoDebug.users.forEach((user) => {
+        console.log(user)
+      });
+      daoDebug.polls.forEach((poll) => {
+        console.log(poll)
+        poll.votes.forEach((vote) => {
+          console.log(vote)
+        })
+      });
+
+    }, 15000)
   });
 });
 

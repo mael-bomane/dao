@@ -45,7 +45,7 @@ impl<'info> PollExecute<'info> {
         
         require!(!dao.polls[usize::from(index as usize)].executed, ErrorCode::PollAlreadyExecuted);
 
-        let is_approved = dao.polls[usize::from(index as usize)].is_approved();
+        let is_approved = dao.polls[usize::from(index as usize)].is_approved(&dao);
 
         let prev = dao.polls[usize::from(index as usize)].clone();
         

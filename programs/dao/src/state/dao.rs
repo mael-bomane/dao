@@ -115,20 +115,20 @@ impl Poll {
         + MAX_CONTENT_LENGTH
         + VECTOR_LENGTH_PREFIX; // bump
 
-    pub fn is_approved(&self) -> bool {
+    pub fn is_approved(&self, dao: &DAO) -> bool {
         let mut approve_power = 0u64;
-        let mut reject_power = 0u64;
+        let mut total_power = 0u64;
 
         for vote in &self.votes {
-            match vote.choice {
-                Choice::Approve => approve_power += vote.voting_power,
-                Choice::Reject => reject_power += vote.voting_power,
+            total_power += vote.voting_power;
+            if vote.choice == Choice::Approve {
+                approve_power += vote.voting_power;
             }
         }
 
-        approve_power > reject_power
-    }
-}
+        let approval_percentage = (approve_power as f64 / total_power as f64) * 100.0;
+        approval_percentage >= dao.threshold as f64
+    }}
 
 #[derive(Debug, Clone, AnchorSerialize, AnchorDeserialize, PartialEq)]
 pub struct Vote {
