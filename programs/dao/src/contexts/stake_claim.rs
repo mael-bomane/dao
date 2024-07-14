@@ -91,9 +91,14 @@ impl<'info> StakeClaim<'info> {
                     .clone()
                     .into_iter()
                     .filter(|deposit| {
-                        time > (deposit.deactivation_start.unwrap() + ONE_MONTH_IN_SECONDS)
+                        time > (Some(deposit.deactivation_start).unwrap().unwrap()
+                            + ONE_MONTH_IN_SECONDS)
                     })
                     .collect();
+
+                if deposits_to_claim.len() == 0 {
+                    return err!(ErrorCode::NoDepositsReadyToClaimForThisUserInThisDAO);
+                }
 
                 for i in 0..deposits_to_claim.len() {
                     amount_to_claim += deposits[i].amount;
@@ -103,7 +108,8 @@ impl<'info> StakeClaim<'info> {
                     .clone()
                     .into_iter()
                     .filter(|deposit| {
-                        time < (deposit.deactivation_start.unwrap() + ONE_MONTH_IN_SECONDS)
+                        time < (Some(deposit.deactivation_start).unwrap().unwrap()
+                            + ONE_MONTH_IN_SECONDS)
                     })
                     .collect();
 
@@ -140,7 +146,7 @@ impl<'info> StakeClaim<'info> {
                 let seeds = &[
                     b"auth",
                     self.analytics.to_account_info().key.as_ref(),
-                    &[self.dao.vault_bump],
+                    &[self.analytics.auth_bump],
                 ];
 
                 let signer_seeds = &[&seeds[..]];

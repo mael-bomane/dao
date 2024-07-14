@@ -32,4 +32,6 @@ pub enum ErrorCode {
     WaitForVotingPeriodToEnd,
     #[msg("Poll Already Executed.")]
     PollAlreadyExecuted,
+    #[msg("No Deposits Ready To Claim For This User In This DAO.")]
+    NoDepositsReadyToClaimForThisUserInThisDAO,
 }
