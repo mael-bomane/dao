@@ -161,7 +161,9 @@ impl User {
         + VECTOR_LENGTH_PREFIX;
 
     pub fn total_user_deposit_amount(&self) -> u64 {
-        self.deposits.iter().map(|deposit| deposit.amount).sum()
+        self.deposits.iter().map(|deposit| {
+            if !deposit.deactivating {deposit.amount} else {0u64}
+        }).sum()
     }
 }
 

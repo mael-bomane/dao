@@ -191,7 +191,7 @@ describe("dao", () => {
   });
 
   it("user1 stake 100 tokens", async () => {
-    await program.methods.stake(new BN(100))
+    await program.methods.stakeNew(new BN(100))
       .accounts({
         user: user1.publicKey,
         auth,
@@ -211,7 +211,7 @@ describe("dao", () => {
   });
 
   it("user2 stake 50 tokens", async () => {
-    await program.methods.stake(new BN(50))
+    await program.methods.stakeNew(new BN(50))
       .accounts({
         user: user2.publicKey,
         auth,
@@ -237,7 +237,7 @@ describe("dao", () => {
     console.log("title length : ", title.length)
     console.log("content length : ", content.length)
 
-    await program.methods.pollCreate(
+    await program.methods.pollNew(
       title,
       content
     )
@@ -256,7 +256,7 @@ describe("dao", () => {
   });
 
   it("user1 vote 'approve' on poll 0 /w 100 voting power", async () => {
-    await program.methods.voteCreate(new BN(0), { approve: {} })
+    await program.methods.voteNew(new BN(0), { approve: {} })
       .accounts({
         signer: user1.publicKey,
         dao,
@@ -272,7 +272,7 @@ describe("dao", () => {
   });
 
   xit("user1 tries voting twice", async () => {
-    await program.methods.voteCreate(new BN(0), { approve: {} })
+    await program.methods.voteNew(new BN(0), { approve: {} })
       .accounts({
         signer: user1.publicKey,
         dao,
@@ -288,7 +288,7 @@ describe("dao", () => {
   });
 
   it("user2 vote 'reject' on poll 0 /w 50 voting power", async () => {
-    await program.methods.voteCreate(new BN(0), { reject: {} })
+    await program.methods.voteNew(new BN(0), { reject: {} })
       .accounts({
         signer: user2.publicKey,
         dao,
@@ -312,11 +312,7 @@ describe("dao", () => {
       })
       .signers([user1])
       .rpc()
-      .then(confirmTx)
-      .then(async () => {
-        const daoDebug = await program.account.dao.fetch(dao);
-        console.log(daoDebug)
-      });
+      .then(confirmTx);
   });
 
   it("user1 execute poll 0 after end of voting period", async () => {
@@ -336,6 +332,21 @@ describe("dao", () => {
         }), 5000);
   }).timeout(6000);
 
+  it("user1 deactivate his staked deposits", async () => {
+    await program.methods.stakeDeactivate()
+      .accounts({
+        user: user1.publicKey,
+        dao,
+        analytics,
+      })
+      .signers([user1])
+      .rpc()
+      .then(confirmTx)
+      .then(async () => {
+        const daoDebug = await program.account.dao.fetch(dao);
+        console.log(daoDebug)
+      });
+  });
 });
 
 const confirmTx = async (signature: string) => {

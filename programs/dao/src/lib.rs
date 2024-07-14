@@ -31,17 +31,25 @@ pub mod dao {
         ctx.accounts.update_analytics()
     }
 
-    pub fn stake(ctx: Context<Stake>, amount: u64) -> Result<()> {
-        ctx.accounts.stake(amount)
+    pub fn stake_new(ctx: Context<StakeNew>, amount: u64) -> Result<()> {
+        ctx.accounts.stake_new(amount)
     }
 
-    pub fn poll_create(ctx: Context<PollCreate>, title: String, content: String) -> Result<()> {
-        ctx.accounts.poll_create(title, content)?;
+    pub fn stake_deactivate(ctx: Context<StakeDeactivate>) -> Result<()> {
+        ctx.accounts.stake_deactivate()
+    }
+
+    pub fn stake_claim(ctx: Context<StakeClaim>) -> Result<()> {
+        ctx.accounts.stake_claim()
+    }
+
+    pub fn poll_new(ctx: Context<PollNew>, title: String, content: String) -> Result<()> {
+        ctx.accounts.poll_new(title, content)?;
         ctx.accounts.update_analytics()
     }
 
-    pub fn vote_create(ctx: Context<VoteCreate>, poll: u64, choice: Choice) -> Result<()> {
-        ctx.accounts.vote_create(poll, choice)?;
+    pub fn vote_new(ctx: Context<VoteNew>, poll: u64, choice: Choice) -> Result<()> {
+        ctx.accounts.vote_new(poll, choice)?;
         ctx.accounts.update_analytics()
     }
 

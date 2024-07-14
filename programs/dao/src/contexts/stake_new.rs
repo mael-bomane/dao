@@ -1,5 +1,4 @@
-use anchor_spl::associated_token::AssociatedToken;
-use anchor_spl::token::{transfer, Mint, Token, TokenAccount, Transfer};
+use anchor_spl::{token::{transfer, Mint, Token, TokenAccount, Transfer}, associated_token::AssociatedToken};
 
 use crate::errors::ErrorCode;
 use crate::state::{Analytics, Deposit, User, Poll, Vote, DAO};
@@ -8,7 +7,7 @@ use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
 #[instruction(amount: u64)]
-pub struct Stake<'info> {
+pub struct StakeNew<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     #[account(
@@ -67,8 +66,8 @@ pub struct Stake<'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl<'info> Stake<'info> {
-    pub fn stake(&mut self, amount: u64) -> Result<()> {
+impl<'info> StakeNew<'info> {
+    pub fn stake_new(&mut self, amount: u64) -> Result<()> {
         // pub creator: Pubkey,
         // pub mint: Pubkey,
         // pub time: Time,

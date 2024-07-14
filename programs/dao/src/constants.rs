@@ -11,4 +11,5 @@ pub const MAX_CONTENT_LENGTH: usize = 280 * 4; // 280 chars max.
 pub const ONE_DAY_IN_SECONDS: i64 = 86400;
 pub const TWO_DAY_IN_SECONDS: i64 = ONE_DAY_IN_SECONDS * 2;
 pub const ONE_WEEK_IN_SECONDS: i64 = ONE_DAY_IN_SECONDS * 7;
-pub const ONE_MONTH_IN_SECONDS: i64 = ONE_DAY_IN_SECONDS * 30;
+// pub const ONE_MONTH_IN_SECONDS: i64 = ONE_DAY_IN_SECONDS * 30;
+pub const ONE_MONTH_IN_SECONDS: i64 = 5;
