@@ -27,9 +27,6 @@ pub struct StakeClaim<'info> {
         bump = dao.dao_bump
     )]
     pub dao: Box<Account<'info, DAO>>,
-    #[account()]
-    /// CHECK : This is safe, we don't read of write from this account
-    pub dao_creator: UncheckedAccount<'info>,
     #[account(
         mut,
         associated_token::mint = mint,
@@ -104,7 +101,7 @@ impl<'info> StakeClaim<'info> {
                     amount_to_claim += deposits[i].amount;
                 }
 
-                let deposits_remaining: Vec<Deposit> = deposits
+                let mut deposits_remaining: Vec<Deposit> = deposits
                     .clone()
                     .into_iter()
                     .filter(|deposit| {
@@ -112,6 +109,10 @@ impl<'info> StakeClaim<'info> {
                             + ONE_MONTH_IN_SECONDS)
                     })
                     .collect();
+
+                if deposits_remaining.len() == 0 {
+                    deposits_remaining = Vec::new()
+                }
 
                 let remaining_voting_power = deposits_remaining
                     .clone()
