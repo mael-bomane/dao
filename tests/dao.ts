@@ -191,7 +191,8 @@ describe("dao", () => {
   });
 
   it("user1 stake 100 tokens", async () => {
-    await program.methods.stakeNew(new BN(100))
+    const token = new PublicKey(mintAddress);
+    await program.methods.stakeNew(new BN(100 * 1 * 10 ** 6))
       .accounts({
         user: user1.publicKey,
         auth,
@@ -206,12 +207,16 @@ describe("dao", () => {
       .then(confirmTx)
       .then(async () => {
         const daoDebug = await program.account.dao.fetch(dao);
-        console.log(daoDebug)
+        console.log(daoDebug);
+        let user1TokenAmount = await connection.getTokenAccountBalance(user1Ata.address);
+        console.log(
+          `User1 now have ${user1TokenAmount.value.uiAmountString} ${token.toBase58()} tokens`
+        );
       });
   });
 
   it("user2 stake 50 tokens", async () => {
-    await program.methods.stakeNew(new BN(50))
+    await program.methods.stakeNew(new BN(50 * 1 * 10 ** 6))
       .accounts({
         user: user2.publicKey,
         auth,
@@ -347,6 +352,50 @@ describe("dao", () => {
         console.log(daoDebug)
       });
   });
+
+  it("user1 claim his deactivated staked deposits", async () => {
+    setTimeout(async () =>
+      await program.methods.stakeClaim()
+        .accounts({
+          user: user1.publicKey,
+          auth,
+          dao,
+          signerAta: user1Ata.address,
+          mint: mint.publicKey,
+          vault,
+          analytics,
+        })
+        .signers([user1])
+        .rpc()
+        .then(confirmTx)
+        .then(async () => {
+          const daoDebug = await program.account.dao.fetch(dao);
+          console.log(daoDebug);
+        }), 5000);
+  }).timeout(6000);
+
+  it("shows poll results", async () => {
+    const token = new PublicKey(mintAddress);
+    setTimeout(async () => {
+      const daoDebug = await program.account.dao.fetch(dao);
+      daoDebug.users.forEach((user) => {
+        console.log(user)
+      });
+      daoDebug.polls.forEach((poll) => {
+        console.log(poll)
+        poll.votes.forEach((vote) => {
+          console.log(vote)
+        })
+      });
+      let user1TokenAmount = await connection.getTokenAccountBalance(user1Ata.address);
+      console.log(
+        `User1 now have ${user1TokenAmount.value.uiAmountString} ${token.toBase58()} tokens`
+      );
+
+    }, 9000)
+  }).timeout(10000);
+
+
 });
 
 const confirmTx = async (signature: string) => {

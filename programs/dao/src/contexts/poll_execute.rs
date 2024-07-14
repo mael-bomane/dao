@@ -1,6 +1,6 @@
 use crate::{
     errors::ErrorCode,
-    state::{Analytics, Deposit, Poll, User, Vote, DAO, Status}, Choice,
+    state::{Analytics, Poll, DAO, Status},
 };
 
 use anchor_lang::prelude::*;

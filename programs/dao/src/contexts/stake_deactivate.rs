@@ -46,9 +46,12 @@ impl<'info> StakeDeactivate<'info> {
             Some(user) => {
                 let mut deposits = user.deposits;
 
+                let mut minus_voting_power = 0u64;
+
                 for i in 0..deposits.len() {
                     deposits[i].deactivating = true;
                     deposits[i].deactivation_start = Some(Clock::get()?.unix_timestamp);
+                    minus_voting_power += deposits[i].amount;
                 }
 
                 let index = dao
@@ -58,11 +61,14 @@ impl<'info> StakeDeactivate<'info> {
                     .position(|user| &user.user == &self.user.clone().key())
                     .unwrap();
 
+                let mut remaining_voting_power = user.voting_power;
+                remaining_voting_power -= minus_voting_power;
+
                 let _ = std::mem::replace(
                     &mut dao.users[index],
                     User {
                         user: user.user,
-                        voting_power: 0u64,
+                        voting_power: remaining_voting_power,
                         points: user.points,
                         created_at: user.created_at,
                         deposits,

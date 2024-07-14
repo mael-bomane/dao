@@ -3,8 +3,11 @@ use anchor_spl::{
     token::{transfer, Mint, Token, TokenAccount, Transfer},
 };
 
-use crate::errors::ErrorCode;
-use crate::state::{Analytics, User, DAO};
+use crate::{
+    constants::*,
+    errors::ErrorCode,
+    state::{Analytics, Deposit, User, DAO},
+};
 
 use anchor_lang::prelude::*;
 
@@ -26,7 +29,6 @@ pub struct StakeClaim<'info> {
     pub dao: Box<Account<'info, DAO>>,
     #[account(
         mut,
-        init_if_needed,
         associated_token::mint = mint,
         associated_token::authority = user,
     )]
@@ -49,6 +51,8 @@ pub struct StakeClaim<'info> {
         bump = analytics.state_bump
     )]
     pub analytics: Box<Account<'info, Analytics>>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,
 }
 
@@ -74,12 +78,36 @@ impl<'info> StakeClaim<'info> {
 
         match user {
             Some(user) => {
-                let mut deposits = user.deposits;
+                let deposits = user.deposits;
 
-                for i in 0..deposits.len() {
-                    deposits[i].deactivating = true;
-                    deposits[i].deactivation_start = Some(Clock::get()?.unix_timestamp);
+                let time = Clock::get()?.unix_timestamp;
+
+                let mut amount_to_claim = 0u64;
+
+                let deposits_to_claim: Vec<Deposit> = deposits
+                    .clone()
+                    .into_iter()
+                    .filter(|deposit| {
+                        time > (deposit.deactivation_start.unwrap() + ONE_MONTH_IN_SECONDS)
+                    })
+                    .collect();
+
+                for i in 0..deposits_to_claim.len() {
+                    amount_to_claim = amount_to_claim + deposits[i].amount;
                 }
+                let deposits_remaining: Vec<Deposit> = deposits
+                    .clone()
+                    .into_iter()
+                    .filter(|deposit| {
+                        time < !(deposit.deactivation_start.unwrap() + ONE_MONTH_IN_SECONDS)
+                    })
+                    .collect();
+
+                let remaining_voting_power = deposits_remaining
+                    .clone()
+                    .into_iter()
+                    .map(|deposit| deposit.amount)
+                    .sum();
 
                 let index = dao
                     .users
@@ -92,12 +120,22 @@ impl<'info> StakeClaim<'info> {
                     &mut dao.users[index],
                     User {
                         user: user.user,
-                        voting_power: 0u64,
+                        voting_power: remaining_voting_power,
                         points: user.points,
                         created_at: user.created_at,
-                        deposits,
+                        deposits: deposits_remaining,
                     },
                 );
+
+                let accounts = Transfer {
+                    from: self.vault.to_account_info(),
+                    to: self.signer_ata.to_account_info(),
+                    authority: self.auth.to_account_info(),
+                };
+
+                let cpi = CpiContext::new(self.token_program.to_account_info(), accounts);
+
+                transfer(cpi, amount_to_claim)?;
             }
             None => return err!(ErrorCode::NoDepositsForThisUserInThisDAO),
         }
