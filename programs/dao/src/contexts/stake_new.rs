@@ -11,7 +11,7 @@ pub struct StakeNew<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     #[account(
-        seeds = [b"auth"],
+        seeds = [b"auth", analytics.key().as_ref()],
         bump = analytics.auth_bump
     )]
     /// CHECK: This is safe, account doesn't exists nor holds data

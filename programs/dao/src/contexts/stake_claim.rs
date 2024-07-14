@@ -16,7 +16,7 @@ pub struct StakeClaim<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     #[account(
-        seeds = [b"auth"],
+        seeds = [b"auth", analytics.key().as_ref()],
         bump = analytics.auth_bump
     )]
     /// CHECK: This is safe, account doesn't exists nor holds data
@@ -27,6 +27,9 @@ pub struct StakeClaim<'info> {
         bump = dao.dao_bump
     )]
     pub dao: Box<Account<'info, DAO>>,
+    #[account()]
+    /// CHECK : This is safe, we don't read of write from this account
+    pub dao_creator: UncheckedAccount<'info>,
     #[account(
         mut,
         associated_token::mint = mint,
@@ -93,13 +96,14 @@ impl<'info> StakeClaim<'info> {
                     .collect();
 
                 for i in 0..deposits_to_claim.len() {
-                    amount_to_claim = amount_to_claim + deposits[i].amount;
+                    amount_to_claim += deposits[i].amount;
                 }
+
                 let deposits_remaining: Vec<Deposit> = deposits
                     .clone()
                     .into_iter()
                     .filter(|deposit| {
-                        time < !(deposit.deactivation_start.unwrap() + ONE_MONTH_IN_SECONDS)
+                        time < (deposit.deactivation_start.unwrap() + ONE_MONTH_IN_SECONDS)
                     })
                     .collect();
 
@@ -133,13 +137,23 @@ impl<'info> StakeClaim<'info> {
                     authority: self.auth.to_account_info(),
                 };
 
-                let cpi = CpiContext::new(self.token_program.to_account_info(), accounts);
+                let seeds = &[
+                    b"auth",
+                    self.analytics.to_account_info().key.as_ref(),
+                    &[self.dao.vault_bump],
+                ];
 
-                transfer(cpi, amount_to_claim)?;
+                let signer_seeds = &[&seeds[..]];
+
+                let cpi = CpiContext::new_with_signer(
+                    self.token_program.to_account_info(),
+                    accounts,
+                    signer_seeds,
+                );
+
+                transfer(cpi, amount_to_claim)
             }
             None => return err!(ErrorCode::NoDepositsForThisUserInThisDAO),
         }
-
-        Ok(())
     }
 }

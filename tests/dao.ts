@@ -37,7 +37,7 @@ describe("dao", () => {
     program.programId
   )[0];
   const auth = PublicKey.findProgramAddressSync(
-    [Buffer.from("auth")],
+    [Buffer.from("auth"), analytics.toBuffer()],
     program.programId
   )[0];
   const dao = PublicKey.findProgramAddressSync(
@@ -191,7 +191,6 @@ describe("dao", () => {
   });
 
   it("user1 stake 100 tokens", async () => {
-    const token = new PublicKey(mintAddress);
     await program.methods.stakeNew(new BN(100 * 1 * 10 ** 6))
       .accounts({
         user: user1.publicKey,
@@ -208,11 +207,9 @@ describe("dao", () => {
       .then(async () => {
         const daoDebug = await program.account.dao.fetch(dao);
         console.log(daoDebug);
-        let user1TokenAmount = await connection.getTokenAccountBalance(user1Ata.address);
-        console.log(
-          `User1 now have ${user1TokenAmount.value.uiAmountString} ${token.toBase58()} tokens`
-        );
       });
+
+
   });
 
   it("user2 stake 50 tokens", async () => {
@@ -354,25 +351,21 @@ describe("dao", () => {
   });
 
   it("user1 claim his deactivated staked deposits", async () => {
-    setTimeout(async () =>
-      await program.methods.stakeClaim()
-        .accounts({
-          user: user1.publicKey,
-          auth,
-          dao,
-          signerAta: user1Ata.address,
-          mint: mint.publicKey,
-          vault,
-          analytics,
-        })
-        .signers([user1])
-        .rpc()
-        .then(confirmTx)
-        .then(async () => {
-          const daoDebug = await program.account.dao.fetch(dao);
-          console.log(daoDebug);
-        }), 5000);
-  }).timeout(6000);
+    await program.methods.stakeClaim()
+      .accounts({
+        user: user1.publicKey,
+        auth,
+        dao,
+        daoCreator: user1.publicKey,
+        signerAta: user1Ata.address,
+        mint: mint.publicKey,
+        vault,
+        analytics,
+      })
+      .signers([user1])
+      .rpc()
+      .then(confirmTx);
+  });
 
   it("shows poll results", async () => {
     const token = new PublicKey(mintAddress);
@@ -395,7 +388,13 @@ describe("dao", () => {
     }, 9000)
   }).timeout(10000);
 
-
+  after(async () => {
+    const token = new PublicKey(mintAddress);
+    let user1TokenAmount = await connection.getTokenAccountBalance(user1Ata.address);
+    console.log(
+      `User1 now have ${user1TokenAmount.value.uiAmountString} ${token.toBase58()} tokens`
+    );
+  })
 });
 
 const confirmTx = async (signature: string) => {

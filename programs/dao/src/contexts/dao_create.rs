@@ -15,7 +15,7 @@ pub struct DAOCreate<'info> {
     #[account(mut)]
     pub creator: Signer<'info>,
     #[account(
-        seeds = [b"auth"],
+        seeds = [b"auth", analytics.key().as_ref()],
         bump = analytics.auth_bump
     )]
     /// CHECK: This is safe, account doesn't exists nor holds data

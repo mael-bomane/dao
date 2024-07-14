@@ -7,7 +7,7 @@ pub struct Init<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(
-        seeds = [b"auth"],
+        seeds = [b"auth", analytics.key().as_ref()],
         bump
     )]
     /// CHECK: This is safe
