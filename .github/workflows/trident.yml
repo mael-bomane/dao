@@ -24,7 +24,9 @@ jobs:
             ./trident-install.sh
 
       - name: Build the program
-        run: anchor build
+        run: | 
+            yarn
+            anchor build
 
       - name: Trident Scan for Fuzz Testing
         run: |
