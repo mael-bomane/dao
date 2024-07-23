@@ -25,6 +25,7 @@ jobs:
 
       - name: Build the program
         run: | 
+            corepack enable
             yarn
             anchor build
 
