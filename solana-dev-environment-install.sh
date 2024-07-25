@@ -31,8 +31,6 @@ npm -v
 # Corepack and Yarn Installation
 echo "Enabling Corepack..."
 corepack enable
-echo "Initializing Yarn..."
-yarn init -2 -y
 echo "Yarn version:"
 yarn --version
 export PATH="$HOME/.yarn/bin:$PATH"
