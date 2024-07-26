@@ -1,0 +1,34 @@
+name: test
+
+on: workflow_dispatch
+
+jobs:
+  check:
+    strategy:
+      fail-fast: true
+
+    name: Solana project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Solana Environment
+        run: |
+            sudo chmod +x solana-dev-environment-install.sh
+            ./solana-dev-environment-install.sh
+
+      - name: Install Trident
+        run: |
+            sudo chmod +x trident-install.sh
+            ./trident-install.sh
+
+      - name: Build the program
+        run: | 
+            corepack enable
+            yarn
+            anchor build
+
+      - name: Trident Scan for Fuzz Testing
+        run: |
+            trident init fuzz
